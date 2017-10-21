@@ -1,7 +1,9 @@
 package persistencia.jdbc;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import entidade.Usuario;
 
@@ -43,6 +45,10 @@ public class UsuarioDAO {
 		}
 	}
 
+	/**
+	 * Excluir um usuario
+	 * @param usuario
+	 */
 	public void excluir(Usuario usuario) {
 		String sql = "DELETE FROM usuario WHERE id=? ";
 		try(PreparedStatement preparar = con.prepareStatement(sql)){
@@ -56,6 +62,72 @@ public class UsuarioDAO {
 		}		
 	}
 	
+	/**
+	 * Método para alterar ou add, dependendo se ele já existe pelo id
+	 * @param usuario
+	 */
+	public void salvar(Usuario usuario) {
+		if(usuario.getId()!=null) {//Se ele tiver id, significa que já foi cadastrado
+			alterar(usuario);
+		}else {
+			cadastrar(usuario);
+		}
+	}
+	
+	/**
+	 * Realiza a busca de um registro com este id
+	 * @return Um objeto Usuario
+	 */
+	public Usuario buscaPorId(Integer id){		
+		String sql = "SELECT *FROM usuario WHERE id=?";
+		
+		try(PreparedStatement preparar = con.prepareStatement(sql)){
+			preparar.setInt(1, id);
+			
+			ResultSet resultado = preparar.executeQuery();//Para retorna os registro
+			//Quando for mais de um registro é necessario usar mais next, para percorrer os outros registro
+			if(resultado.next()) {//Se tem algum resultadona consulta
+				Usuario usuRetorno = new Usuario();
+				usuRetorno.setId(id);
+				usuRetorno.setName(resultado.getString("nome"));
+				usuRetorno.setSenha(resultado.getString("senha"));
+				usuRetorno.setLogin(resultado.getString("login"));
+				
+				return usuRetorno;
+			}						
+		}catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * Realiza a busca de todos os registro da tabela de usuarios
+	 * @return Uma lista de objetos Usuario
+	 */
+	public ArrayList<Usuario> buscaTodos(){		
+			ArrayList<Usuario> lista= new ArrayList<Usuario>();	
+			String sql = "SELECT *FROM usuario";
+			
+			try(PreparedStatement preparar = con.prepareStatement(sql)){							
+				ResultSet resultado = preparar.executeQuery();//Para retorna os registro				
+				//PERCORRE CADA RESGISTRO A CADA LAÇO DO WHILE
+				while(resultado.next()) {//next vai para o proximo registro e retorna true se existir
+					
+					Usuario usuRetorno = new Usuario();
+					usuRetorno.setId(resultado.getInt("id"));
+					usuRetorno.setName(resultado.getString("nome"));
+					usuRetorno.setSenha(resultado.getString("senha"));
+					usuRetorno.setLogin(resultado.getString("login"));
+					
+					//Adicionando na lista
+					lista.add(usuRetorno);
+				}				
+			}catch(SQLException e) {
+				e.printStackTrace();
+			}
+			return lista;
+		}
 }
 	
 
