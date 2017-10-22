@@ -1,4 +1,4 @@
-package entidade;
+package br.com.ProjetoWEB.entidade;
 
 public class Usuario {
 	

@@ -1,13 +1,13 @@
 package br.com.ProjetoWEB;
 import java.util.ArrayList;
 
-import entidade.Usuario;
-import persistencia.jdbc.UsuarioDAO;
+import br.com.ProjetoWEB.entidade.Usuario;
+import br.com.ProjetoWEB.persistencia.jdbc.UsuarioDAO;
 
 public class TesteUsuarioDAO {
 
 	public static void main(String[] args) {
-		testeBuscaTodos();
+		testeAutenticacao();
 	}
 	public static void testCadastrar() {
 		//Criando o usuario
@@ -80,5 +80,15 @@ public class TesteUsuarioDAO {
 			for(Usuario u:lista) {//percorrendo todo o vetor
 				System.out.println(u);
 			}
+	}
+	
+	public static void testeAutenticacao() {
+		 UsuarioDAO usuDAO = new UsuarioDAO();
+		 Usuario usuario = new Usuario();
+		 usuario.setLogin("douglasro");
+		 usuario.setSenha("123");
+		 
+		 Usuario usuRetorno = usuDAO.autenticar(usuario);
+		 System.out.println(usuRetorno);
 	}
 }

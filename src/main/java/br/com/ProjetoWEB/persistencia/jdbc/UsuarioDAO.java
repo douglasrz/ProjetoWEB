@@ -1,18 +1,22 @@
-package persistencia.jdbc;
+package br.com.ProjetoWEB.persistencia.jdbc;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import entidade.Usuario;
+import br.com.ProjetoWEB.entidade.Usuario;
 
+/*
+ * Classe responsavel pelas operação do usuario com o banco de dados
+ */
 public class UsuarioDAO {
 
 	private Connection con = ConexaoFactory.getConnection();
 	
 	public void cadastrar(Usuario usuario) {
-		String sql = "INSERT INTO USUARIO(nome,login,senha) VALUES(?,?,?)";
+		String sql = "INSERT INTO USUARIO(nome,login,senha) VALUES(?,?,md5(?))";
+		//md5 criptografa a senha
 		try {
 			PreparedStatement preparar = con.prepareStatement(sql);
 			preparar.setString(1, usuario.getName());//Substitui o ? pelo dado do usuario
@@ -29,7 +33,7 @@ public class UsuarioDAO {
 	}
 	
 	public void alterar(Usuario usuario) {
-		String sql = "UPDATE usuario set nome=?, login=?, senha=? WHERE id=? ";
+		String sql = "UPDATE usuario set nome=?, login=?, senha=md5(?) WHERE id=? ";
 		try(PreparedStatement preparar = con.prepareStatement(sql)){
 			preparar.setString(1, usuario.getName());//Substitui o ? pelo dado do usuario
 			preparar.setString(2, usuario.getLogin());
@@ -67,7 +71,7 @@ public class UsuarioDAO {
 	 * @param usuario
 	 */
 	public void salvar(Usuario usuario) {
-		if(usuario.getId()!=null) {//Se ele tiver id, significa que já foi cadastrado
+		if(usuario.getId()!=null && usuario.getId()!=0) {//Se ele tiver id, significa que já foi cadastrado
 			alterar(usuario);
 		}else {
 			cadastrar(usuario);
@@ -88,7 +92,7 @@ public class UsuarioDAO {
 			//Quando for mais de um registro é necessario usar mais next, para percorrer os outros registro
 			if(resultado.next()) {//Se tem algum resultadona consulta
 				Usuario usuRetorno = new Usuario();
-				usuRetorno.setId(id);
+				usuRetorno.setId(Integer.parseInt(resultado.getString("id")));
 				usuRetorno.setName(resultado.getString("nome"));
 				usuRetorno.setSenha(resultado.getString("senha"));
 				usuRetorno.setLogin(resultado.getString("login"));
@@ -127,7 +131,29 @@ public class UsuarioDAO {
 				e.printStackTrace();
 			}
 			return lista;
+	}
+	public Usuario autenticar(Usuario usuConsulta) {
+		String sql = "SELECT *FROM usuario WHERE login=? and senha=md5(?)";
+		
+		try(PreparedStatement prepara = con.prepareStatement(sql)){
+			prepara.setString(1, usuConsulta.getLogin());
+			prepara.setString(2, usuConsulta.getSenha());
+			ResultSet resultado = prepara.executeQuery();
+			if(resultado.next()) {
+				Usuario usuario = new Usuario();
+				usuario.setId(resultado.getInt("id"));
+				usuario.setName(resultado.getString("nome"));
+				usuario.setLogin(resultado.getString("login"));
+				usuario.setSenha(resultado.getString("senha"));
+				
+				return usuario;
+			}			
+		}catch(SQLException e) {
+			e.printStackTrace();			
 		}
+		
+		return null;		
+	}
 }
 	
 
